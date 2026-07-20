@@ -92,6 +92,10 @@ do
   -- Enable faster startup by caching compiled Lua modules
   vim.loader.enable()
 
+  -- Removes netrw flash before neo-tree
+  vim.g.loaded_netrw = 1
+  vim.g.loaded_netrwPlugin = 1
+
   -- Set <space> as the leader key
   -- See `:help mapleader`
   --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
@@ -99,7 +103,7 @@ do
   vim.g.maplocalleader = ' '
 
   -- Set to true if you have a Nerd Font installed and selected in the terminal
-  vim.g.have_nerd_font = false
+  vim.g.have_nerd_font = true
 
   -- [[ Setting options ]]
   --  See `:help vim.o`
@@ -147,6 +151,9 @@ do
   vim.o.splitright = true
   vim.o.splitbelow = true
 
+  -- Terminal Shell
+  vim.opt.shell = 'pwsh.exe'
+
   -- Sets how neovim will display certain whitespace characters in the editor.
   --  See `:help 'list'`
   --  and `:help 'listchars'`
@@ -157,6 +164,10 @@ do
   --   and `:help lua-guide-options`
   vim.o.list = true
   vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
+
+  vim.o.tabstop = 2
+  vim.o.shiftwidth = 2
+  vim.o.expandtab = true
 
   -- Preview substitutions live, as you type!
   vim.o.inccommand = 'split'
@@ -209,7 +220,12 @@ do
     },
   }
 
+  vim.keymap.set('n', 'gl', vim.diagnostic.open_float, { desc = 'Open diagnostic float' })
+
   vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+
+  -- vim.keymap.set('n', '<leader>t', '<cmd>split | terminal<cr>', { desc = 'Open [T]erminal' })
+  vim.keymap.set('n', '<leader>T', '<cmd>vsplit | terminal<cr>', { desc = 'Open [T]erminal (vertical)' })
 
   -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
   -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
@@ -431,6 +447,18 @@ do
   -- - sd'   - [S]urround [D]elete [']quotes
   -- - sr)'  - [S]urround [R]eplace [)] [']
   require('mini.surround').setup()
+
+  require('mini.files').setup({
+    windows = { preview = true },
+    mappings = {
+      go_in_plus  = '<CR>',
+    }
+  })
+
+  local explore_at_file = '<Cmd>lua MiniFiles.open(vim.api.nvim_buf_get_name(0))<CR>'
+
+  vim.keymap.set({ 'n' }, '<leader>-', '<Cmd>lua MiniFiles.open()<CR>', { desc = 'Opens MiniFiles Working Directory' })
+  vim.keymap.set({ 'n' }, '<leader>=', '<Cmd>lua MiniFiles.open()<CR>', { desc = 'Opens MiniFiles Working Directory' })
 
   -- Simple and easy statusline.
   --  You could remove this setup call if you don't like it,
@@ -735,9 +763,20 @@ do
       settings = {
         Lua = {
           format = { enable = false }, -- Disable formatting (formatting is done by stylua)
+          workspace = {
+            ignoreDir = {
+              '.git',
+              'node_modules',
+              '.venv',
+              'bin',
+              'build',
+            },
+          },
         },
       },
     },
+
+    vtsls = {},
   }
 
   vim.pack.add {
@@ -830,6 +869,7 @@ do
   -- [[ Autocomplete Engine ]]
   vim.pack.add { { src = gh 'saghen/blink.cmp', version = vim.version.range '1.*' } }
   require('blink.cmp').setup {
+
     keymap = {
       -- 'default' (recommended) for mappings similar to built-in completions
       --   <c-y> to accept ([y]es) the completion.
@@ -853,7 +893,8 @@ do
       --
       -- See `:help blink-cmp-config-keymap` for defining your own keymap
       preset = 'default',
-
+      ['<C-space>'] = { 'show', 'show_documentation', 'hide_documentation' },
+      ['<C-\\>'] = { 'show', 'show_documentation', 'hide_documentation' },
       -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
       --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
     },
@@ -966,17 +1007,17 @@ do
   --  Here are some example plugins that I've included in the Kickstart repository.
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
-  -- require 'kickstart.plugins.debug'
-  -- require 'kickstart.plugins.indent_line'
+  require 'kickstart.plugins.debug'
+  require 'kickstart.plugins.indent_line'
   -- require 'kickstart.plugins.lint'
-  -- require 'kickstart.plugins.autopairs'
+  require 'kickstart.plugins.autopairs'
   -- require 'kickstart.plugins.neo-tree'
-  -- require 'kickstart.plugins.gitsigns' -- adds gitsigns recommended keymaps
+  require 'kickstart.plugins.gitsigns' -- adds gitsigns recommended keymaps
 
   -- NOTE: You can add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
-  -- require 'custom.plugins'
+  require 'custom.plugins'
 end
 
 -- The line beneath this is called `modeline`. See `:help modeline`
