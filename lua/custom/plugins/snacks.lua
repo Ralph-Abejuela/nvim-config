@@ -25,10 +25,6 @@ snacks.setup {
       wo = { wrap = true },
     },
   },
-}
-
--- Picker: fuzzy finder replacing Telescope
-snacks.setup({
   picker = {
     enabled = true,
     sources = {
@@ -36,14 +32,10 @@ snacks.setup({
       explorer = { hidden = true, ignored = false },
     },
   },
-})
-
--- Statusline replacing mini.statusline
-snacks.setup({
   statusline = {
-    enabled = true,
+    enabled = false,
   },
-})
+}
 
 -- Picker keymaps (same leader keys as old Telescope setup)
 vim.keymap.set('n', '<leader>sh', function() snacks.picker.help() end, { desc = '[S]earch [H]elp' })
@@ -64,9 +56,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
   group = vim.api.nvim_create_augroup('snacks-lsp-attach', { clear = true }),
   callback = function(event)
     local buf = event.buf
-    local map = function(keys, func, desc)
-      vim.keymap.set('n', keys, func, { buffer = buf, desc = 'LSP: ' .. desc })
-    end
+    local map = function(keys, func, desc) vim.keymap.set('n', keys, func, { buffer = buf, desc = 'LSP: ' .. desc }) end
     map('grr', function() snacks.picker.lsp_references() end, '[G]oto [R]eferences')
     map('gri', function() snacks.picker.lsp_implementations() end, '[G]oto [I]mplementation')
     map('grd', function() snacks.picker.lsp_definitions() end, '[G]oto [D]efinition')

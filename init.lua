@@ -481,6 +481,7 @@ do
   -- mini.files disabled: using neo-tree instead
 
   -- Statusline is handled by snacks.nvim (see lua/custom/plugins/snacks.lua)
+  require('mini.statusline').setup()
 
   -- ... and there is more!
   --  Check out: https://github.com/nvim-mini/mini.nvim
@@ -493,7 +494,8 @@ end
 -- NOTE: Snacks.nvim is configured in lua/custom/plugins/snacks.lua
 --       Picker keymaps and LSP picker mappings are defined there.
 --       The code below is a no-op placeholder.
-do end
+do
+end
 
 -- SECTION 5 cleaned. The old Telescope section ended here:
 -- [legacy-telescope-section-removed]
@@ -729,9 +731,7 @@ do
   vim.pack.add { gh 'stevearc/conform.nvim' }
   require('conform').setup {
     notify_on_error = false,
-    format_on_save = function(bufnr)
-      return { timeout_ms = 500 }
-    end,
+    format_on_save = function(bufnr) return { timeout_ms = 500 } end,
     default_format_opts = {
       lsp_format = 'fallback',
     },
@@ -843,7 +843,34 @@ do
   vim.pack.add { { src = gh 'nvim-treesitter/nvim-treesitter', version = 'main' } }
 
   -- Ensure basic parsers are installed
-  local parsers = { 'bash', 'c', 'css', 'diff', 'go', 'gomod', 'gosum', 'gowork', 'html', 'javascript', 'json', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'python', 'query', 'regex', 'rust', 'scss', 'toml', 'tsx', 'typescript', 'vim', 'vimdoc', 'yaml' }
+  local parsers = {
+    'bash',
+    'c',
+    'css',
+    'diff',
+    'go',
+    'gomod',
+    'gosum',
+    'gowork',
+    'html',
+    'javascript',
+    'json',
+    'lua',
+    'luadoc',
+    'markdown',
+    'markdown_inline',
+    'python',
+    'query',
+    'regex',
+    'rust',
+    'scss',
+    'toml',
+    'tsx',
+    'typescript',
+    'vim',
+    'vimdoc',
+    'yaml',
+  }
   require('nvim-treesitter').install(parsers)
 
   ---@param buf integer
