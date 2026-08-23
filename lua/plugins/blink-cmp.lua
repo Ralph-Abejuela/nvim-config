@@ -15,7 +15,9 @@ return {
     },
     opts = {
       keymap = {
-        preset = 'default',
+        -- 'super-tab': <Tab> accepts the completion (or jumps snippet
+        -- placeholders), falls back to a literal Tab when nothing is open
+        preset = 'super-tab',
         -- alternatives to <C-Space> (WT may not deliver it everywhere):
         -- <C-;> via kitty protocol, <C-g> byte-level (works in any terminal)
         ['<C-;>'] = { 'show', 'show_documentation', 'hide_documentation' },
