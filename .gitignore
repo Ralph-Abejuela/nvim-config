@@ -12,3 +12,7 @@ spell/
 nvim-pack-lock.json
 
 .DS_Store
+
+# pi (coding agent) state
+.pi/
+.pi-glla/
