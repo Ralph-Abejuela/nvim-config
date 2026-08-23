@@ -53,6 +53,13 @@ map('n', 'gr', vim.lsp.buf.references, { desc = 'References' })
 map('n', 'gi', vim.lsp.buf.implementation, { desc = 'Implementation' })
 map('n', 'K', vim.lsp.buf.hover, { desc = 'Hover' })
 
+-- Toggle inlay hints (inline type/param annotations)
+map('n', '<leader>ci', function()
+  vim.g.inlay_hints_enabled = vim.g.inlay_hints_enabled == false
+  vim.lsp.inlay_hint.enable(vim.g.inlay_hints_enabled, { bufnr = 0 })
+  print('Inlay hints: ' .. (vim.g.inlay_hints_enabled and 'on' or 'off'))
+end, { desc = 'Toggle inlay hints' })
+
 -- Format (conform, keybind only — no format on save)
 map('n', '<leader>cf', function()
   require('conform').format({ lsp_fallback = true })

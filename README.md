@@ -33,6 +33,7 @@ Leader = `<Space>`.
 | `<leader>fr` | n | fzf-lua: recent files |
 | `<leader>e` | n | neo-tree toggle |
 | `<leader>ca` | n | LSP code action |
+| `<leader>ci` | n | toggle inlay hints (inline type/param annotations) |
 | `<leader>rn` | n | LSP rename |
 | `gd` | n | LSP go to definition |
 | `gr` | n | LSP references |
