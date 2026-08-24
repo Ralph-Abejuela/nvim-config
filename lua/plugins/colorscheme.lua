@@ -1,25 +1,18 @@
--- Colorscheme — the only eagerly-loaded plugin (priority 1000)
+-- Colorscheme — the only eagerly-loaded plugin (priority 1000).
+-- config() must explicitly call colorscheme: lazy loads + setups the plugin,
+-- but does not apply it.
 return {
   {
-    'catppuccin/nvim',
-    name = 'catppuccin',
+    'folke/tokyonight.nvim',
+    name = 'tokyonight',
     lazy = false,
     priority = 1000,
     opts = {
-      flavour = 'mocha',
-      integrations = {
-        gitsigns = true,
-        neo_tree = true,
-        treesitter = true,
-        bufferline = true,
-        which_key = true,
-        mini = {
-          statusline = true,
-          indentscope = true,
-          pairs = true,
-          surround = true,
-        },
-      },
+      style = 'night', -- darkest Tokyo Night (moon/storm/day are alternates)
     },
+    config = function(_, opts)
+      require('tokyonight').setup(opts)
+      vim.cmd.colorscheme('tokyonight')
+    end,
   },
 }
