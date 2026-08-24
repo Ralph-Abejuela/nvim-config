@@ -205,3 +205,33 @@ No keymaps of its own — shows existing mappings as you type a prefix.
 ## Startup note
 
 Plugins are lazy except catppuccin and neo-tree (`lazy = false` — required for the netrw hijack on `nvim .`). Big files >2MB disable treesitter/LSP/folding automatically. Inlay hints: on for all servers (tsc included). TypeScript LSP: `tsc` (TypeScript 7 Go compiler, npm `typescript@7`; `tsgo` is deprecated).
+
+---
+
+## FAQ
+
+Real answers to problems this config solves — each solution is self-contained and works in any Neovim 0.11+ setup.
+
+### Why does closing a buffer expand neo-tree to full width?
+
+Neovim's `:bd` displays the most recent entry in the jump list after deleting the current buffer — which is often the file explorer buffer itself. Fix: switch to a real file buffer *before* deleting. This config does it in bufferline's `close_command`, so closing a tab always lands on another code buffer and never on the tree.
+
+### Why does `:q` not exit Neovim when a file tree sidebar is open?
+
+`:q` closes only the current window; the sidebar window keeps Neovim alive. Fix: a `WinClosed` autocmd — when the last remaining window is the tree, run `:qa` so quitting always exits.
+
+### Why do files opened from neo-tree disappear from the tab bar?
+
+neo-tree opens files with `bufadd()`, which creates **unlisted** buffers (and does not fire `BufAdd`). Unlisted buffers are invisible to bufferline and can be silently dropped by `:bd`. Fix: mark buffers listed in a `BufEnter`/`BufWinEnter`/`BufReadPost` autocmd.
+
+### Why doesn't my colorscheme apply when loaded by lazy.nvim?
+
+lazy.nvim loads and runs `setup()` but never calls `vim.cmd.colorscheme()` — the theme must be applied explicitly in the plugin's `config`.
+
+### How do I get live command-line completion while typing?
+
+Neovim 0.12 has native autocompletion: an autocmd on `CmdlineChanged` calling `wildtrigger()`, plus `set wildmode=noselect:lastused,full` and `set wildoptions=pum`. See `:h cmdline-autocompletion`.
+
+### Why is `mason-lspconfig` starting servers I didn't enable?
+
+`automatic_enable` defaults to true — mason-lspconfig auto-enables every installed package that has an lspconfig recipe. Set `automatic_enable = false` and call `vim.lsp.enable()` with your own list.
