@@ -34,12 +34,18 @@ return {
         capabilities = require('blink.cmp').get_lsp_capabilities(),
       })
 
-      -- lua_ls: know the nvim runtime
+      -- lua_ls: know the nvim runtime + enable diagnostics (some builds
+      -- publish nothing without this) and mark 'vim' as a known global
       vim.lsp.config('lua_ls', {
         settings = {
           Lua = {
+            runtime = { version = 'LuaJIT' },
             workspace = { library = vim.api.nvim_get_runtime_file('', true) },
             checkThirdParty = false,
+            diagnostics = {
+              enable = true,
+              globals = { 'vim' },
+            },
           },
         },
       })
