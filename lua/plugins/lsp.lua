@@ -54,10 +54,11 @@ return {
       -- Server options live in the mason-lspconfig spec opts above.
       vim.lsp.enable({ 'lua_ls', 'tsc', 'pyright' })
 
-      -- inlay hints always on for every attached server
+      -- inlay hints on by default for every attached server;
+      -- `<leader>ci` toggles via vim.g.inlay_hints_enabled
       vim.api.nvim_create_autocmd('LspAttach', {
         callback = function(args)
-          if vim.b.bigfile then
+          if vim.b.bigfile or vim.g.inlay_hints_enabled == false then
             return
           end
           local client = vim.lsp.get_client_by_id(args.data.client_id)
@@ -67,9 +68,14 @@ return {
         end,
       })
 
-      -- diagnostics: signs in gutter, float on hover (CursorHold in config/autocmds.lua)
+      -- Diagnostics: inline virtual text (disabled by default in nvim),
+      -- gutter signs, float on hover (CursorHold in config/autocmds.lua)
       vim.diagnostic.config({
-        virtual_text = false,
+        virtual_text = {
+          prefix = '●',
+          spacing = 4,
+          source = 'if_many',
+        },
         signs = true,
         underline = true,
         update_in_insert = false,
