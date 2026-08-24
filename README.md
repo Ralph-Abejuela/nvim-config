@@ -1,16 +1,22 @@
-# nvim config — keymap reference
+# nvim-config
 
-Modular Neovim 0.12 config (lazy.nvim, ~80ms startup). All plugins lazy-load except the colorscheme and neo-tree (neo-tree must source early to hijack netrw so `nvim .` opens the tree).
+A fast, modular [Neovim 0.12](https://neovim.io/) configuration built on [lazy.nvim](https://github.com/folke/lazy.nvim) — ~80 ms startup, LSP-driven development, and a curated buffer/tab-close workflow that plays nice with [neo-tree](https://github.com/nvim-neo-tree/neo-tree.nvim).
 
-```
+**Highlights:** blink.cmp completion · treesitter · Mason-managed LSP (lua_ls, tsc, pyright) · inline diagnostics · tokyonight theme · bufferline tabs · gitsigns + lazygit · which-key · Copilot · Windows-first (pwsh terminals, netrw hijack so `nvim .` opens the file tree).
+
+## Structure
+
+```text
 init.lua              lazy bootstrap, leader, eager config
 lua/config/           options · keymaps · autocmds
 lua/plugins/*.lua     one lazy.nvim spec per plugin
 ```
 
-Plugins: blink.cmp · fzf-lua · neo-tree · mason + nvim-lspconfig (lua_ls, tsc, pyright) · conform + nvim-lint · gitsigns · toggleterm · catppuccin · mini.statusline / mini.pairs / mini.surround / mini.indentscope · bufferline · harpoon · persistence · which-key · copilot.vim · LuaSnip · treesitter
+## Plugins
 
-Run `:h <package>` (e.g. `:h blink-cmp-config-keymap`, `:h neo-tree-mappings`) for the full docs — this file is the curated reference.
+blink.cmp · fzf-lua · neo-tree · mason + nvim-lspconfig (lua_ls, tsc, pyright) · conform + nvim-lint · gitsigns · toggleterm · tokyonight · mini.statusline / mini.pairs / mini.surround / mini.indentscope · bufferline · harpoon · persistence · which-key · copilot.vim · LuaSnip · treesitter
+
+Run `:h <package>` (e.g. `:h blink-cmp-config-keymap`, `:h neo-tree-mappings`) for full docs — this README doubles as the curated keymap reference.
 
 ---
 
