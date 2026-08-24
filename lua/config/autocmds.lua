@@ -76,18 +76,8 @@ vim.api.nvim_create_autocmd('FileType', {
   end,
 })
 
--- Float diagnostics on hover (CursorHold)
-vim.api.nvim_create_autocmd('CursorHold', {
-  group = augroup,
-  callback = function()
-    if vim.b.bigfile or vim.bo.buftype ~= '' then
-      return
-    end
-    if #vim.diagnostic.get(0, { severity = { min = vim.diagnostic.severity.WARN } }) > 0 then
-      vim.diagnostic.open_float(nil, { focusable = false, scope = 'line' })
-    end
-  end,
-})
+-- Float diagnostics popup removed: errors are shown inline (virtual_text)
+-- now; `<leader>cd` opens the full diagnostics float on demand.
 
 -- nvim-lint on save
 vim.api.nvim_create_autocmd('BufWritePost', {
@@ -100,12 +90,35 @@ vim.api.nvim_create_autocmd('BufWritePost', {
   end,
 })
 
--- Close the neo-tree when it's the last window left (replaces neo-tree's
--- close_if_last_window, minus its modified-buffer guard that hijacks :wq —
--- vim's own E37 already protects unsaved buffers).
+-- Quit handling. Two distinct triggers, two handlers:
+--   * BufDelete  -> tab close (x on the tab = :bd). :q/:wq never delete buffers.
+--   * WinClosed  -> a window closed (:q/:wq/ZZ on the last file window). nvim
+--                   would stay because the tree window survives — exit instead.
+-- Both ignore startup: the netrw hijack on `nvim .` deletes the directory
+-- buffer / juggles windows while vim.v.vim_did_enter == 0.
+
+local function is_real_file_buf(bufnr)
+  local name = vim.fn.bufname(bufnr)
+  if name == '' or name == '.' then
+    return false
+  end
+  if vim.bo[bufnr].buftype ~= '' or vim.bo[bufnr].filetype == 'neo-tree' then
+    return false
+  end
+  return vim.fn.isdirectory(vim.fn.fnamemodify(name, ':p')) ~= 1
+end
+
+-- :q / :wq / ZZ on the last file window -> the file window closes, only the
+-- tree remains -> quit nvim. The tree never blocks a quit.
+-- qa (not qa!) keeps E37 protection: if a hidden buffer is modified, quit is
+-- refused — and we fall back to showing that buffer instead of leaving the
+-- user stranded on the tree.
 vim.api.nvim_create_autocmd('WinClosed', {
   group = augroup,
   callback = function(args)
+    if vim.v.vim_did_enter == 0 then
+      return -- startup hijack window juggling
+    end
     local closing_win = tonumber(args.match)
     local others = {}
     for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
@@ -125,7 +138,99 @@ vim.api.nvim_create_autocmd('WinClosed', {
       return -- split-style tree: closing it would close the file too
     end
     vim.schedule(function()
-      pcall(vim.cmd, 'q!')
+      local ok, err = pcall(vim.cmd, 'qa')
+      if not ok then
+        vim.notify('Could not quit: ' .. tostring(err), vim.log.levels.WARN, {
+          title = 'UserConfig',
+        })
+        -- E37 (unsaved changes): show the modified buffer instead of the tree
+        for _, n in ipairs(vim.api.nvim_list_bufs()) do
+          if vim.bo[n].modified and is_real_file_buf(n) then
+            pcall(vim.cmd.buffer, n)
+            break
+          end
+        end
+      end
+    end)
+  end,
+})
+
+-- Neo-tree opens files via bufadd() which creates UNLISTED buffers (and
+-- bufadd doesn't fire BufAdd). An unlisted current file means :bd leaves no
+-- listed buffer -> the window closes -> nvim quits on a single tab close.
+-- Mark real file buffers listed whenever they're read/displayed.
+vim.api.nvim_create_autocmd({ 'BufEnter', 'BufWinEnter', 'BufReadPost' }, {
+  group = augroup,
+  callback = function()
+    for _, n in ipairs(vim.api.nvim_list_bufs()) do
+      if
+        vim.fn.bufname(n) ~= ''
+        and vim.bo[n].buftype == ''
+        and vim.bo[n].filetype ~= 'neo-tree'
+        and not vim.bo[n].buflisted
+      then
+        vim.bo[n].buflisted = true
+      end
+    end
+  end,
+})
+
+-- Tab close (x on the tab = :bd). After the wipe, if the window fell back
+-- to the neo-tree buffer or an empty buffer, show the most-recently-used
+-- real file; if no file buffers remain (last tab), quit nvim.
+-- Switching buffers BEFORE the wipe (inside BufDelete) perturbed nvim mid-
+-- delete and closed the whole session; everything here runs scheduled, after
+-- the wipe completes.
+-- Remaining files found via nvim_list_bufs() (unlisted included — neo-tree
+-- bufadd'd files can be unlisted, so a buflisted filter would falsely quit).
+vim.api.nvim_create_autocmd('BufDelete', {
+  group = augroup,
+  callback = function(args)
+    if vim.v.vim_did_enter == 0 then
+      return -- startup hijack deletes the '.' directory buffer
+    end
+    local deleted = args.buf
+    if not is_real_file_buf(deleted) then
+      return -- not a real file (scratch/dir/terminal/tree)
+    end
+    vim.schedule(function()
+      local cur = vim.api.nvim_get_current_buf()
+      if is_real_file_buf(cur) then
+        return -- nvim already landed on another file
+      end
+
+      -- most-recently-used real file buffer other than the deleted one
+      local target, mru = nil, 0
+      for _, n in ipairs(vim.api.nvim_list_bufs()) do
+        if n ~= deleted and is_real_file_buf(n) then
+          local used = vim.fn.getbufinfo(n)[1].lastused or 0
+          if used > mru then
+            mru = used
+            target = n
+          end
+        end
+      end
+      if not target then
+        local ok, err = pcall(vim.cmd, 'qa') -- last file tab closed -> quit
+        if not ok then
+          vim.notify('Could not quit: ' .. tostring(err), vim.log.levels.WARN, {
+            title = 'UserConfig',
+          })
+        end
+        return
+      end
+
+      -- put the file in a window that shows the tree/empty fallback (not the
+      -- tree sidebar), falling back to the current window
+      local win = vim.api.nvim_get_current_win()
+      for _, w in ipairs(vim.api.nvim_list_wins()) do
+        local wb = vim.api.nvim_win_get_buf(w)
+        if vim.bo[wb].filetype ~= 'neo-tree' and not is_real_file_buf(wb) then
+          win = w
+          break
+        end
+      end
+      pcall(vim.api.nvim_win_set_buf, win, target)
     end)
   end,
 })
