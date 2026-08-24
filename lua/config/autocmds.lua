@@ -155,6 +155,33 @@ vim.api.nvim_create_autocmd('WinClosed', {
   end,
 })
 
+-- Wipe leftover special buffers (help / checkhealth / scratch) after their
+-- window closes. Core nvim closes the tabpage correctly, but the special
+-- buffer stays LISTED and shows as an empty-looking tab in bufferline
+-- (LazyVim #4638, neovim PR #31865). Never touches real file buffers.
+vim.api.nvim_create_autocmd('WinClosed', {
+  group = augroup,
+  callback = function()
+    vim.schedule(function()
+      for _, n in ipairs(vim.api.nvim_list_bufs()) do
+        local name = vim.fn.bufname(n)
+        local bt = vim.bo[n].buftype
+        if
+          vim.api.nvim_buf_is_valid(n)
+          and vim.fn.bufwinid(n) == -1 -- not displayed anywhere
+          and not vim.bo[n].modified
+          and (
+            (bt ~= '' and bt ~= 'quickfix' and bt ~= 'terminal')
+            or name:match('^%[')
+          )
+        then
+          pcall(vim.api.nvim_buf_delete, n, { force = true })
+        end
+      end
+    end)
+  end,
+})
+
 -- Neo-tree opens files via bufadd() which creates UNLISTED buffers (and
 -- bufadd doesn't fire BufAdd). An unlisted current file means :bd leaves no
 -- listed buffer -> the window closes -> nvim quits on a single tab close.
