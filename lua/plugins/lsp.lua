@@ -13,10 +13,8 @@ return {
       -- alias — mason marks the native-preview package deprecated)
       ensure_installed = { 'lua_ls', 'tsc', 'pyright' },
       automatic_installation = true,
-      -- only vim.lsp.enable() in the config below attaches servers; without
-      -- this, every installed package with a recipe auto-attaches (leftover
-      -- ts_ls/vtsls/tsgo packages from older configs would all start)
-      automatic_enable = false,
+      -- every installed package with an lspconfig recipe auto-attaches
+      automatic_enable = true,
     },
   },
   {
@@ -56,9 +54,24 @@ return {
       -- requires TS 7.0+ for --lsp), monorepo root detection and server
       -- settings. No custom recipe needed.
 
-      -- install via mason, attach via vim.lsp.enable (0.11+ framework).
-      -- Server options live in the mason-lspconfig spec opts above.
-      vim.lsp.enable({ 'lua_ls', 'tsc', 'pyright' })
+      vim.lsp.config('astro', {
+        before_init = function(_, config)
+          local util = require('lspconfig.util')
+          -- TS 7 (Go) installs have no lib/typescript.js, which astro-ls
+          -- requires — treat those as missing and fall back to pnpm global
+          local tsdk = util.get_typescript_server_path(config.root_dir)
+          if tsdk == '' or not vim.uv.fs_stat(tsdk .. '/typescript.js') then
+            local npm_root = vim.fn.systemlist('pnpm root -g')
+            if vim.v.shell_error == 0 and npm_root[1] then
+              tsdk = npm_root[1] .. '/typescript/lib'
+            end
+          end
+          config.init_options = config.init_options or {}
+          config.init_options.typescript = config.init_options.typescript or {}
+          config.init_options.typescript.tsdk = tsdk
+        end,
+      })
+
 
       -- inlay hints on by default for every attached server;
       -- `<leader>ci` toggles via vim.g.inlay_hints_enabled
