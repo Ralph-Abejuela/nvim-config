@@ -11,6 +11,26 @@ opt.relativenumber = true
 opt.mouse = 'a'
 opt.showmode = false
 opt.clipboard = 'unnamedplus'
+
+-- Windows only: pin clipboard provider so nvim's auto-detection doesn't
+-- pick AMD's lemonade.exe (LLM server on PATH) as the 'lemonade'
+-- remote-clipboard tool, which made `yy` error with "error invoking
+-- lemonade: The following argument was not expected: copy". Other systems
+-- keep default detection (pbcopy/wl-copy/xclip/etc.).
+if vim.fn.has('win32') == 1 then
+  vim.g.clipboard = {
+    name = 'win32yank',
+    copy = {
+      ['+'] = 'win32yank.exe -i --crlf',
+      ['*'] = 'win32yank.exe -i --crlf',
+    },
+    paste = {
+      ['+'] = 'win32yank.exe -o --lf',
+      ['*'] = 'win32yank.exe -o --lf',
+    },
+    cache_enabled = 0,
+  }
+end
 opt.breakindent = true
 opt.undofile = true
 opt.ignorecase = true
