@@ -34,16 +34,9 @@ map('c', '<Down>', function()
   return '<Down>'
 end, { expr = true })
 
--- Command line: Tab explicitly cycles the wildmenu popup (the live-popup
--- autocompletion can swallow the native wildchar-Tab). When no popup is
--- open, fall through to native wildchar completion (returns <Tab>, which is
--- not remapped when equal to the mapping's lhs).
-map('c', '<Tab>', function()
-  if vim.fn.wildmenumode() == 1 then
-    return vim.api.nvim_replace_termcodes('<C-N>', true, false, true)
-  end
-  return '<Tab>'
-end, { expr = true })
+-- NOTE: no custom cmdline <Tab> mapping — blink.cmp owns Tab in ':'
+-- (shows/cycles the completion menu); a global c-mode map would shadow it.
+-- In / and ? the native wildchar-Tab applies (see autocmds.lua).
 
 -- ---- Leader: Space ----
 

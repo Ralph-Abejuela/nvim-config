@@ -55,15 +55,17 @@ vim.api.nvim_create_autocmd('BufEnter', {
   end,
 })
 
--- Live cmdline completion popup while typing (: / ?) — nvim 0.12
+-- Live cmdline completion popup while typing (/ and ? only) — nvim 0.12
 -- wildtrigger() + CmdlineChanged (see :h cmdline-autocompletion).
+-- ':' completion is owned by blink.cmp instead (plugins/blink-cmp.lua) —
+-- running wildtrigger on ':' too made Tab cycling unreliable.
 -- Skip re-trigger while a popup item is SELECTED: cycling with Tab updates
 -- the cmdline, which fires CmdlineChanged again — re-triggering then resets
 -- the selection and Tab appeared to "not cycle". Typing sets selected=-1,
 -- so the list still refreshes on normal keystrokes.
 vim.api.nvim_create_autocmd('CmdlineChanged', {
   group = augroup,
-  pattern = { ':', '/', '?' },
+  pattern = { '/', '?' },
   callback = function()
     local info = vim.fn.cmdcomplete_info()
     if vim.fn.wildmenumode() == 1 and (info.selected or -1) ~= -1 then

@@ -41,6 +41,19 @@ return (function()
       use_nvim_cmp_as_default = false, -- v1 renamed from ..._matching
       nerd_font_variant = 'mono',
     },
+    -- Cmdline completion is owned by blink (VSCode-style: menu pops up as
+    -- you type a command, Tab cycles). The native wildtrigger live popup is
+    -- disabled for ':' (see autocmds.lua) — the two systems fought over the
+    -- popup and Tab cycling never worked.
+    cmdline = {
+      completion = {
+        menu = {
+          auto_show = function(_)
+            return vim.fn.getcmdtype() == ':'
+          end,
+        },
+      },
+    },
   })
 
   -- Load friendly-snippets into LuaSnip (after blink's snippet preset is set)
