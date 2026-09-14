@@ -53,6 +53,11 @@ return {
       -- recipe handles binary resolution (node_modules/.bin/tsc or PATH,
       -- requires TS 7.0+ for --lsp), monorepo root detection and server
       -- settings. No custom recipe needed.
+      vim.lsp.enable('tsc')
+
+      vim.lsp.enable('basedpyright')
+      vim.lsp.enable('ruff')
+
 
       vim.lsp.config('astro', {
         before_init = function(_, config)
