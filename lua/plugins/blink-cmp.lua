@@ -46,6 +46,19 @@ return (function()
     -- disabled for ':' (see autocmds.lua) — the two systems fought over the
     -- popup and Tab cycling never worked.
     cmdline = {
+      keymap = {
+        -- default 'cmdline' preset + Up/Down for menu navigation
+        ['<Tab>'] = { 'show_and_insert_or_accept_single', 'select_next' },
+        ['<S-Tab>'] = { 'show_and_insert_or_accept_single', 'select_prev' },
+        ['<Down>'] = { 'select_next', 'fallback' },
+        ['<Up>'] = { 'select_prev', 'fallback' },
+        ['<C-n>'] = { 'select_next', 'fallback' },
+        ['<C-p>'] = { 'select_prev', 'fallback' },
+        ['<Right>'] = { 'select_next', 'fallback' },
+        ['<Left>'] = { 'select_prev', 'fallback' },
+        ['<C-y>'] = { 'select_and_accept', 'fallback' },
+        ['<C-e>'] = { 'cancel', 'fallback' },
+      },
       completion = {
         menu = {
           auto_show = function(_)
