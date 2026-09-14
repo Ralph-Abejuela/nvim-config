@@ -1,27 +1,22 @@
 -- Git: inline hunks (gitsigns) + lazygit in floating terminal (toggleterm)
-return {
-  {
-    'lewis6991/gitsigns.nvim',
-    event = { 'BufReadPre', 'BufNewFile' },
-    opts = {},
-  },
-  {
-    'akinsho/toggleterm.nvim',
-    cmd = { 'ToggleTerm', 'Lazygit' },
-    opts = {
-      direction = 'float',
-      float_opts = { border = 'rounded' },
-      open_mapping = false, -- use <leader>t instead of auto C-`
-      shell = 'pwsh', -- interactive terminals get pwsh; nvim's global shell stays cmd (see options.lua)
-    },
-    config = function(_, opts)
-      require('toggleterm').setup(opts)
+return (function()
+  vim.pack.add({
+    'https://github.com/lewis6991/gitsigns.nvim',
+    'https://github.com/akinsho/toggleterm.nvim',
+  })
 
-      local Terminal = require('toggleterm.terminal').Terminal
-      local lazygit = Terminal:new({ cmd = 'lazygit', direction = 'float', hidden = true })
-      vim.api.nvim_create_user_command('Lazygit', function()
-        lazygit:toggle()
-      end, {})
-    end,
-  },
-}
+  require('gitsigns').setup({})
+
+  require('toggleterm').setup({
+    direction = 'float',
+    float_opts = { border = 'rounded' },
+    open_mapping = false, -- use <leader>t instead of auto C-`
+    shell = 'pwsh', -- interactive terminals get pwsh; nvim's global shell stays cmd (see options.lua)
+  })
+
+  local Terminal = require('toggleterm.terminal').Terminal
+  local lazygit = Terminal:new({ cmd = 'lazygit', direction = 'float', hidden = true })
+  vim.api.nvim_create_user_command('Lazygit', function()
+    lazygit:toggle()
+  end, {})
+end)()

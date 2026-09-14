@@ -1,26 +1,8 @@
--- Quick file pinning (harpoon-style)
-return {
-  {
-    'ThePrimeagen/harpoon',
-    branch = 'harpoon2',
-    keys = {
-      {
-        '<leader>a',
-        function()
-          require('harpoon'):list():add()
-        end,
-        desc = 'Harpoon add',
-      },
-      {
-        '<leader>h',
-        function()
-          require('harpoon').ui:toggle_quick_menu(require('harpoon'):list())
-        end,
-        desc = 'Harpoon menu',
-      },
-    },
-    config = function()
-      require('harpoon').setup()
-    end,
-  },
-}
+-- Quick file pinning (harpoon-style). Mappings live in config/keymaps.lua.
+return (function()
+  vim.pack.add({
+    { src = 'https://github.com/ThePrimeagen/harpoon', version = 'harpoon2' },
+  })
+
+  require('harpoon').setup()
+end)()

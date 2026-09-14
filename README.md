@@ -1,15 +1,15 @@
 # nvim-config
 
-A fast, modular [Neovim 0.12](https://neovim.io/) configuration built on [lazy.nvim](https://github.com/folke/lazy.nvim) — ~80 ms startup, LSP-driven development, and a curated buffer/tab-close workflow that plays nice with [neo-tree](https://github.com/nvim-neo-tree/neo-tree.nvim).
+A fast, modular [Neovim 0.12](https://neovim.io/) configuration built on the built-in [vim.pack](https://neovim.io/doc/user/pack/) plugin manager — LSP-driven development, and a curated buffer/tab-close workflow that plays nice with [neo-tree](https://github.com/nvim-neo-tree/neo-tree.nvim).
 
 **Highlights:** blink.cmp completion · treesitter · Mason-managed LSP (lua_ls, tsc, pyright) · inline diagnostics · tokyonight theme · bufferline tabs · gitsigns + lazygit · which-key · Copilot · Windows-first (pwsh terminals, netrw hijack so `nvim .` opens the file tree).
 
 ## Structure
 
 ```text
-init.lua              lazy bootstrap, leader, eager config
+init.lua              PackChanged hook, leader, eager config, plugin load order
 lua/config/           options · keymaps · autocmds
-lua/plugins/*.lua     one lazy.nvim spec per plugin
+lua/plugins/*.lua     one vim.pack.add() + setup() per plugin
 ```
 
 ## Plugins
@@ -204,7 +204,7 @@ No keymaps of its own — shows existing mappings as you type a prefix.
 
 ## Startup note
 
-Plugins are lazy except catppuccin and neo-tree (`lazy = false` — required for the netrw hijack on `nvim .`). Big files >2MB disable treesitter/LSP/folding automatically. Inlay hints: on for all servers (tsc included). TypeScript LSP: `tsc` (TypeScript 7 Go compiler, npm `typescript@7`; `tsgo` is deprecated).
+All plugins load eagerly via `vim.pack` (no lazy-loading — `vim.pack.add()` + `setup()` at startup). Plugin versions are tracked in `nvim-pack-lock.json` (committed); update with `:lua vim.pack.update()` and confirm in the review buffer. Big files >2MB disable treesitter/LSP/folding automatically. Inlay hints: on for all servers (tsc included). TypeScript LSP: `tsc` (TypeScript 7 Go compiler, npm `typescript@7`; `tsgo` is deprecated).
 
 ---
 
@@ -224,9 +224,13 @@ Neovim's `:bd` displays the most recent entry in the jump list after deleting th
 
 neo-tree opens files with `bufadd()`, which creates **unlisted** buffers (and does not fire `BufAdd`). Unlisted buffers are invisible to bufferline and can be silently dropped by `:bd`. Fix: mark buffers listed in a `BufEnter`/`BufWinEnter`/`BufReadPost` autocmd.
 
-### Why doesn't my colorscheme apply when loaded by lazy.nvim?
+### How does plugin management work (vim.pack)?
 
-lazy.nvim loads and runs `setup()` but never calls `vim.cmd.colorscheme()` — the theme must be applied explicitly in the plugin's `config`.
+Neovim 0.12's built-in `vim.pack` replaces lazy.nvim: each `lua/plugins/*.lua` calls `vim.pack.add()` (clones to `site/pack/core/opt` on first run, then loads) followed by explicit `setup()`. There is no lazy-loading, `keys`/`event` spec, or lockfile generation step — `nvim-pack-lock.json` records revisions and is committed. Update: `:lua vim.pack.update()`; treesitter parsers refresh via the `PackChanged` hook in `init.lua`.
+
+### How do I add a plugin?
+
+Create (or extend) a file in `lua/plugins/`: call `vim.pack.add({ 'https://github.com/...' })`, then `require('...').setup({...})`. Require the file from `init.lua` in dependency order — a plugin must be added before anything that needs its modules.
 
 ### How do I get live command-line completion while typing?
 

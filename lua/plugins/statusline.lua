@@ -1,11 +1,5 @@
 -- Statusline: mini.statusline
-return {
-  {
-    'echasnovski/mini.statusline',
-    version = false,
-    event = 'VeryLazy',
-    config = function()
-      require('mini.statusline').setup({ use_icons = true })
-    end,
-  },
-}
+return (function()
+  vim.pack.add({ 'https://github.com/echasnovski/mini.statusline' })
+  require('mini.statusline').setup({ use_icons = true })
+end)()

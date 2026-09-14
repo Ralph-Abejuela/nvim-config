@@ -1,8 +1,5 @@
 -- Sessions: auto save/restore per project dir
-return {
-  {
-    'folke/persistence.nvim',
-    event = 'BufReadPre',
-    opts = {},
-  },
-}
+return (function()
+  vim.pack.add({ 'https://github.com/folke/persistence.nvim' })
+  require('persistence').setup({})
+end)()

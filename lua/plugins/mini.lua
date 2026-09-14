@@ -1,31 +1,19 @@
 -- mini.nvim editing QoL: auto-pairs, surround, indent scope
-return {
-  {
-    'echasnovski/mini.pairs',
-    version = false,
-    event = 'InsertEnter',
-    config = function()
-      require('mini.pairs').setup()
-    end,
-  },
-  {
-    'echasnovski/mini.surround',
-    version = false,
-    keys = { { 'gsa', mode = 'n' }, { 'gsd', mode = 'n' }, { 'gsr', mode = 'n' }, { 's', mode = 'v' } },
-    config = function()
-      require('mini.surround').setup()
-    end,
-  },
-  {
-    'echasnovski/mini.indentscope',
-    version = false,
-    event = 'BufReadPre',
-    config = function()
-      local indentscope = require('mini.indentscope')
-      indentscope.setup({
-        draw = { animation = indentscope.gen_animation.none() },
-        symbol = '▏',
-      })
-    end,
-  },
-}
+return (function()
+  vim.pack.add({
+    'https://github.com/echasnovski/mini.pairs',
+    'https://github.com/echasnovski/mini.surround',
+    'https://github.com/echasnovski/mini.indentscope',
+  })
+
+  require('mini.pairs').setup()
+
+  -- gs prefix mappings (gsa/gsd/gsr, visual s) come from setup() defaults
+  require('mini.surround').setup()
+
+  local indentscope = require('mini.indentscope')
+  indentscope.setup({
+    draw = { animation = indentscope.gen_animation.none() },
+    symbol = '▏',
+  })
+end)()
