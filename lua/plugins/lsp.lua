@@ -24,12 +24,16 @@ return (function()
   })
 
   -- lua_ls: know the nvim runtime + enable diagnostics (some builds
-  -- publish nothing without this) and mark 'vim' as a known global
+  -- publish nothing without this) and mark 'vim' as a known global.
+  -- workspace.library is kept MINIMAL (VIMRUNTIME + this config): pointing
+  -- it at get_runtime_file('', true) makes lua_ls index every runtimepath
+  -- entry (all ~28 plugins + help files), which delayed the first
+  -- codeAction request by 30-60s (measured; trimmed = 171ms warm).
   vim.lsp.config('lua_ls', {
     settings = {
       Lua = {
         runtime = { version = 'LuaJIT' },
-        workspace = { library = vim.api.nvim_get_runtime_file('', true) },
+        workspace = { library = { [vim.env.VIMRUNTIME] = true, [vim.fn.stdpath('config')] = true }, checkThirdParty = false },
         checkThirdParty = false,
         diagnostics = {
           enable = true,
