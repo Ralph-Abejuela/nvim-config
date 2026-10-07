@@ -1,22 +1,33 @@
--- Git: inline hunks (gitsigns) + lazygit in floating terminal (toggleterm)
+-- Git: inline change markers in the gutter (gitsigns), described in plain
+-- English for the which-key hint system.
 return (function()
-  vim.pack.add({
-    'https://github.com/lewis6991/gitsigns.nvim',
-    'https://github.com/akinsho/toggleterm.nvim',
-  })
+  vim.pack.add { 'https://github.com/lewis6991/gitsigns.nvim' }
 
-  require('gitsigns').setup({})
+  require('gitsigns').setup {
+    on_attach = function(bufnr)
+      local gs = package.loaded.gitsigns
+      local map = vim.keymap.set
+      local opts = { buffer = bufnr }
 
-  require('toggleterm').setup({
-    direction = 'float',
-    float_opts = { border = 'rounded' },
-    open_mapping = false, -- use <leader>t instead of auto C-`
-    shell = 'pwsh', -- interactive terminals get pwsh; nvim's global shell stays cmd (see options.lua)
-  })
-
-  local Terminal = require('toggleterm.terminal').Terminal
-  local lazygit = Terminal:new({ cmd = 'lazygit', direction = 'float', hidden = true })
-  vim.api.nvim_create_user_command('Lazygit', function()
-    lazygit:toggle()
-  end, {})
+      map('n', ']h', gs.next_hunk, vim.tbl_extend('force', opts, { desc = 'Jump to next change' }))
+      map('n', '[h', gs.prev_hunk, vim.tbl_extend('force', opts, { desc = 'Jump to previous change' }))
+      map('n', '<leader>gp', gs.preview_hunk, vim.tbl_extend('force', opts, { desc = 'Preview this change' }))
+      map('n', '<leader>hs', gs.stage_hunk, vim.tbl_extend('force', opts, { desc = 'Stage (commit) this change' }))
+      map('n', '<leader>hr', gs.reset_hunk, vim.tbl_extend('force', opts, { desc = 'Undo this change' }))
+      map(
+        'v',
+        '<leader>hs',
+        function() gs.stage_hunk { vim.fn.line '.', vim.fn.line 'v' } end,
+        vim.tbl_extend('force', opts, { desc = 'Stage selected changes' })
+      )
+      map(
+        'v',
+        '<leader>hr',
+        function() gs.reset_hunk { vim.fn.line '.', vim.fn.line 'v' } end,
+        vim.tbl_extend('force', opts, { desc = 'Undo selected changes' })
+      )
+      -- text object: inside a change, e.g. `vih`
+      map({ 'o', 'x' }, 'ih', gs.select_hunk, vim.tbl_extend('force', opts, { desc = 'Select (inner change)' }))
+    end,
+  }
 end)()

@@ -1,48 +1,56 @@
 --[[
-Neovim 0.12 modular config — vim.pack (built-in plugin manager), <80ms target.
+Neovim 0.12 LSP-first config — vim.pack (built-in plugin manager).
 
-  lua/config/*.lua   → options, keymaps, autocmds (eager, tiny)
-  lua/plugins/*.lua  → one vim.pack.add() + setup() per plugin (all eager)
+Design priorities (in order):
+  1. LSP for ANY language, installed lazily: open a file of a language whose
+     server is not installed and the server downloads itself. No ensure-list.
+  2. Every custom keybind has a plain-English description surfaced by
+     which-key (leader hints as you type) — no vim experience assumed.
+  3. Warm LSP: a language server starts once per language per session and is
+     reused by every later buffer of that language. Closing files never
+     restarts it, and already-served languages are memoized so re-opening a
+     file costs a single table lookup.
+  4. Zero LSP configuration: servers run on nvim-lspconfig recipe defaults;
+     nothing is hand-tuned per language (one documented exception: lua_ls,
+     because editing this config IS editing lua).
+  5. VSCode-parity behavior: goto/refs/rename/hover/code-actions/refactor,
+     inline diagnostics + hover detail, inlay hints, formatter via LSP,
+     file explorer, fuzzy finder, git gutter, snippets.
+  6. Fast: eager load is ~10 tiny plugin files; treesitter parsers and LSP
+     servers install lazily on first use, cached afterwards.
+  7. Snippets: LuaSnip + friendly-snippets.
+  8. Useful completion sorting: exact match > fuzzy score (frecency +
+     proximity) > item kind (fields/variables/functions first) > sort_text.
 
-Load order matters here: a plugin's vim.pack.add() must run before anything
-that requires its modules. Shared dependencies (plenary, web-devicons, …) are
-listed in each file that needs them — re-adding an active plugin is a no-op.
+Load order matters: blink-cmp before lsp (capabilities query), colorscheme
+first (no flash), everything else after.
 ]]
 
--- Leader must be set before any plugin loads
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
-require('config.options')
-require('config.keymaps')
-require('config.autocmds')
+require 'config.options'
+require 'config.keymaps'
+require 'config.statusline'
+require 'config.autocmds'
 
 -- Post-update hook: refresh treesitter parsers whenever nvim-treesitter is
--- updated. Must be created BEFORE the first vim.pack.add() (:h vim.pack-hooks).
+-- updated. Must exist BEFORE the first vim.pack.add() (:h vim.pack-hooks).
 vim.api.nvim_create_autocmd('PackChanged', {
   callback = function(ev)
     local name, kind = ev.data.spec.name, ev.data.kind
     if name == 'nvim-treesitter' and kind == 'update' then
-      if not ev.data.active then vim.cmd.packadd('nvim-treesitter') end
-      vim.cmd('TSUpdate')
+      if not ev.data.active then vim.cmd.packadd 'nvim-treesitter' end
+      vim.cmd 'TSUpdate'
     end
   end,
 })
 
--- Everything eager, in dependency order (colorscheme first to avoid flash)
-require('plugins.colorscheme')
-require('plugins.blink-cmp')
-require('plugins.mini')
-require('plugins.statusline')
-require('plugins.treesitter')
-require('plugins.autotag')
-require('plugins.lsp')
-require('plugins.neo-tree')
-require('plugins.bufferline')
-require('plugins.fzf-lua')
-require('plugins.git')
-require('plugins.harpoon')
-require('plugins.copilot')
-require('plugins.format')
-require('plugins.sessions')
-require('plugins.which-key')
+require 'plugins.colorscheme'
+require 'plugins.blink-cmp'
+require 'plugins.lsp'
+require 'plugins.treesitter'
+require 'plugins.neo-tree'
+require 'plugins.fzf-lua'
+require 'plugins.git'
+require 'plugins.which-key'

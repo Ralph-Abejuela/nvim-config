@@ -1,12 +1,12 @@
--- Fuzzy finder (files, grep, buffers, recents) + global vim.ui.select.
--- register_ui_select() replaces Neovim's default numbered-prompt picker so
--- code actions and other vim.ui.select consumers open an interactive fzf UI.
+-- Fuzzy finder (files, text, buffers, recents) + vim.ui.select UI.
+-- register_ui_select() replaces the numbered prompt for code actions with
+-- these same fzf pickers.
 return (function()
-  vim.pack.add({
-    'https://github.com/nvim-lua/plenary.nvim', -- no-op if already active
+  vim.pack.add {
+    'https://github.com/nvim-lua/plenary.nvim',
     'https://github.com/ibhagwan/fzf-lua',
-  })
+  }
 
-  require('fzf-lua').setup({})
+  require('fzf-lua').setup {}
   require('fzf-lua').register_ui_select()
 end)()
