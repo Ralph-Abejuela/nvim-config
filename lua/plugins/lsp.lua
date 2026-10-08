@@ -265,12 +265,22 @@ return (function()
   -- VSCode-parity polish
   -- ------------------------------------------------------------------
 
-  -- Inlay hints on by default for every attached server; <leader>ci toggles.
   vim.api.nvim_create_autocmd('LspAttach', {
     callback = function(args)
       local client = vim.lsp.get_client_by_id(args.data.client_id)
       if vim.b.bigfile or vim.g.inlay_hints_enabled == false then return end
+      -- Inlay hints on by default for every attached server; <leader>ci toggles.
       if client and client:supports_method 'textDocument/inlayHint' then vim.lsp.inlay_hint.enable(true, { bufnr = args.buf }) end
+      -- Upgrade folding to the LSP provider when the server offers
+      -- foldingRange. Base provider is treesitter foldexpr
+      -- (config/options.lua). Pattern straight from :h vim.lsp.foldexpr;
+      -- folding is window-local, so every window showing this buffer is
+      -- covered. Later windows fall back to the treesitter default.
+      if client and client:supports_method 'textDocument/foldingRange' then
+        for _, win in ipairs(vim.fn.win_findbuf(args.buf)) do
+          vim.wo[win][0].foldexpr = 'v:lua.vim.lsp.foldexpr()'
+        end
+      end
     end,
   })
 

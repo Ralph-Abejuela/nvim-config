@@ -43,6 +43,17 @@ opt.cursorline = true
 opt.scrolloff = 8
 opt.termguicolors = true
 
+-- Folding, exactly as :h vim.lsp recommends:
+--   expr-based evaluation with treesitter levels as the base provider —
+--   works anywhere a parser exists (which treesitter installs lazily per
+--   language); an LspAttach autocmd (plugins/lsp.lua) upgrades buffers
+--   served by a foldingRange-capable server to vim.lsp.foldexpr().
+-- Everything starts unfolded, like VSCode.
+opt.foldmethod = 'expr'
+opt.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
+opt.foldlevel = 99
+opt.foldcolumn = 'auto:1'
+
 opt.tabstop = 2
 opt.shiftwidth = 2
 opt.expandtab = true
